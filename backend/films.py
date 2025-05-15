@@ -31,7 +31,10 @@ async def search(message: types.Message, text=None, shift=0):
         raise TypeError("Chat id is not integer")
     db_path = f"./backend/temp/{message.chat.id}/movies.db"
     os.makedirs(os.path.dirname(db_path), exist_ok=True)  # Создаем директорию, если ее нет
-    os.remove(db_path)
+    try:
+        os.remove(db_path)
+    except FileNotFoundError:
+        pass
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
