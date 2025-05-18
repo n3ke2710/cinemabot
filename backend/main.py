@@ -1,5 +1,6 @@
 import os
 import asyncio
+from collections import defaultdict
 
 from aiogram import types  # type: ignore
 from aiogram.filters import Command  # type: ignore
@@ -9,8 +10,11 @@ from config import bot, dp  # Импортируем bot и dp из config
 from films import search, give_result_page
 
 from stats import add_to_history, get_history
+from ai.ai_req import query_hugging_chat
 
-status: dict[int, str] = {}
+import requests
+
+status: defaultdict[int, str] = defaultdict(lambda: 'default')
 
 @dp.message(Command('start'))
 async def cmd_start(message: types.Message):
@@ -21,9 +25,16 @@ async def cmd_start(message: types.Message):
 async def cmd_ai(message: types.Message):
     status[message.chat.id] = 'ai'
     await message.answer(
-        "Опиши фильм, а я попробую его угадать!"
+        "Опиши фильм, а я попробую его угадать!\n(Учтите, это может занять некоторое время)"
     )
 
+@dp.message(Command('kp'))
+async def cmd_kp(message: types.Message):
+	url = "https://api.kinopoisk.dev/v1.4/image?page=1&limit=10"
+	headers = {"accept": "application/json"}
+	response = requests.get(url, headers=headers)
+
+	print(response.text)
 
 @dp.message(lambda message: message.photo)
 async def handle_photo_message(message: types.Message):
@@ -45,16 +56,17 @@ async def view_history(message: types.Message):
 
 @dp.message()
 async def bot_answer(message: types.Message):
-    if message.chat.id in status:
-        if status[message.chat.id] == 'ai':
-            from ai.ai_req import query_hugging_chat
-            if not isinstance(message.text, str):
-                await message.answer('SOSI BIBU')
-                raise TypeError("Message text is None")
-            response = await query_hugging_chat(message.text)
-            message.answer(response)
-        else:
-            await search(message)
+    user_status = status[message.chat.id]
+    
+    if user_status == 'ai':
+        if not isinstance(message.text, str):
+            await message.answer('Ошибка: текст сообщения отсутствует.')
+            return
+        await message.answer('Обрабатываю запрос...')
+        response = await query_hugging_chat(message.text)
+        await bot.delete_message(message.chat.id, message.message_id + 1)
+        await message.answer(response)
+        status[message.chat.id] = 'default'
     else:
         await search(message)
 

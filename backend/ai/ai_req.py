@@ -1,6 +1,4 @@
-from hugchat import hugchat
-import os
-from dotenv import load_dotenv  # type: ignore
+from ai.ai_config import chatbot
 
 
 async def query_hugging_chat(prompt: str) -> str:
@@ -13,14 +11,11 @@ async def query_hugging_chat(prompt: str) -> str:
     Returns:
         str: The response from the Hugging Chat API.
     """
-    preprompt = "Представь, что ты кинокритик. Посоветуй наиболее подходящий фильм под описание: \n"
-    load_dotenv()  # Load environment variables from a .env file
-    TOKEN = os.getenv("HUGGING_CHAT_TOKEN")  # Retrieve the token from environment variables
+    preprompt = "Представь, что ты кинокритик. Посоветуй наиболее подходящий фильм под описание. Формат ответа: номер. название(год). Описание:\n"
 
-    if not TOKEN:
-        raise ValueError("HUGGING_CHAT_TOKEN is not set in the environment variables.")
-
-    chatbot = hugchat.ChatBot(token=TOKEN)  # Initialize ChatBot with the token
     response = chatbot.chat(preprompt + prompt)
 
-    return response
+    # Преобразуем объект ответа в строку
+    if hasattr(response, "content"):  # Если объект имеет атрибут content
+        return response.content
+    return str(response)  # В противном случае преобразуем в строку

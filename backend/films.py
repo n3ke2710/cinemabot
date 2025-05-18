@@ -10,21 +10,23 @@ import sqlite3
 
 from dotenv import load_dotenv  # type: ignore
 import imdb  # type: ignore
-
-from config import ia  # Импортируем ia из config
-from markup import get_movie_keyboard
+from icrawler.builtin import GoogleImageCrawler # type: ignore
+from config import ia, bot  # Импортируем ia и bot из config
+from markup import get_movie_keyboard, get_card_keyboard
 
 async def search(message: types.Message, text=None, shift=0):
+    await message.answer('Обрабатываю запрос...')
     if text is None:
         text = message.text
     query = text  # Извлекаем текст сообщения
     if not query:
+        await bot.delete_message(message.chat.id, message.message_id + 1)
         await message.answer("Пожалуйста, введите название фильма.")
         return
 
     # Поиск фильма
     results = ia.search_movie(query)
-   
+	
    
     # Сохранение результатов поиска в базу данных
     if not isinstance(message.chat.id, int):
@@ -49,9 +51,9 @@ async def search(message: types.Message, text=None, shift=0):
     ''')
 
     # Сохраняем результаты поиска
-    for movie in results:
-        title = movie.get('title', 'Unknown')
-        year = movie.get('year', 'Unknown')
+    for movie in results[:5]:
+        title = movie.get('title', '')
+        year = movie.get('year', '')
         imdb_id = movie.movieID
         try:
             cursor.execute('''
@@ -63,11 +65,12 @@ async def search(message: types.Message, text=None, shift=0):
 
     conn.commit()
     conn.close()
-    
-    builder = await get_movie_keyboard(message)
+
+    builder = await get_card_keyboard(message, title=results[0].get('title', ''))
+    await bot.delete_message(message.chat.id, message.message_id + 1)
     if results:
         builder.adjust(1)  # Настраиваем клавиатуру
-        await message.answer("Вот что я нашел:", reply_markup=builder.as_markup())
+        await give_result_page(message, title=results[0].get('title', ''))
     else:
         await message.answer("К сожалению, я ничего не нашел по вашему запросу.")
 
@@ -89,13 +92,14 @@ async def give_result_page(message: types.Message, title: str):
     conn.close()
 
     if results_title:
-        response = "Вот что я нашел:\n\n"
-        for result in results_title:
-            movie_title, year, imdb_id = result
-            response += f"🎬 {movie_title} ({year})\nIMDB: https://www.imdb.com/title/tt{imdb_id}/\n\n"
-        builder = await get_movie_keyboard(message)
+        response = ""
+        result = results_title[0]
+        movie_title, year, imdb_id = result
+        response += f"🎬 {movie_title} ({year})\nIMDB: https://www.imdb.com/title/tt{imdb_id}/\n\n"
+		
+        builder = await get_card_keyboard(message, title=movie_title)
         builder.adjust(1)
-        # Преобразуем builder в InlineKeyboardMarkup
-        await message.answer(response, reply_markup=builder.as_markup())
+
+        await message.answer(response, reply_markup=builder.as_markup(), disable_web_page_preview=False)
     else:
         await message.answer("К сожалению, я ничего не нашел по вашему запросу.")
