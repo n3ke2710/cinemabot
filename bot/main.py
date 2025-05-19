@@ -7,7 +7,8 @@ from config import bot_token, bot, dp, router
 import aiohttp
 
 import asyncio
-from aiogram.filters import Command, F
+from aiogram.filters import Command
+from aiogram import F
 
 from handlers.reqs.tmdb.tmdb import search_movie
 from handlers.markup.keyboard_markup_constructor import construct_keyboard_markup
