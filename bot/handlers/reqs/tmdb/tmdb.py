@@ -16,8 +16,10 @@ async def get_movie_details(movie_id):
 			else:
 				return None
 
-async def search_movie(movie_title):
+async def search_movie(movie_title, is_series):
 	url = f"{base_url}search/movie?api_key={tmdb_api_key}&query={movie_title}"
+	if is_series:
+		url = f"{base_url}search/tv?api_key={tmdb_api_key}&query={movie_title}"
 	print(url)
 	async with aiohttp.ClientSession() as session:
 		async with session.get(url) as response:

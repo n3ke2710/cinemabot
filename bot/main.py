@@ -15,13 +15,21 @@ from handlers.markup.keyboard_markup_constructor import construct_keyboard_marku
 from handlers.reqs.search_href.search import search_first_result
 
 logging.basicConfig(level=logging.INFO)
-
+is_series_status: dict[int, bool] = {}
 
 @dp.message(Command('start'))
 async def start(message: Message):
-    await message.answer("Welcome! Use /find_film to search for a film.")
+    await message.answer("Welcome! Use /series to search for a series.")
 
-async def show_film_card(chat_id: int, film_data: dict) -> None:
+@dp.message(Command('series'))
+async def series_mode(message: Message):
+    await message.answer("Searching series mod ON! Use /film to search for a film.")
+    
+@dp.message(Command('films'))
+async def films_mode(message: Message):
+    await message.answer("Searching films mod ON! Use /series to search for a series.")
+
+async def show_film_card(chat_id: int, film_data: dict, is_series: bool = False) -> None:
     poster_url = f"https://image.tmdb.org/t/p/w500{film_data['poster_path']}" if film_data.get('poster_path') else None
 
     rating = film_data.get('vote_average', 0)
@@ -31,14 +39,15 @@ async def show_film_card(chat_id: int, film_data: dict) -> None:
     stars = '⭐' * full_stars + '✬' * half_star + '☆' * empty_stars
 
     answer_text = (
-        f"{film_data.get('title', 'Нет названия')}\n\n"
+        f"{film_data.get('title' if not is_series else 'name', 'N/A')}\n\n"
         f"<b>{'Rating:'}</b> {film_data.get('vote_average', 'N/A')} {stars}\n"
+        f"<b>{'Date:'}</b> {film_data.get('release_date' if not is_series else 'first_air_date', 'N/A')}\n"
         f"----------------------------------------------\n"
         f"\n"
-        f"<b>{'Description:'}</b> {film_data.get('overview', 'Описание отсутствует')}"
+        f"<b>{'Description:'}</b> {film_data.get('overview', 'N/A')}"
         f"\n"
         f"----------------------------------------------\n"
-        f"<b>{'Watch now:'}</b> {search_first_result(film_data.get('title', ''))}"
+        f"<b>{'Watch now:'}</b> {search_first_result(film_data.get('title', ''), is_series=is_series_status.get(chat_id, False))}"
     )
 
     if poster_url:
@@ -54,12 +63,12 @@ async def handle_movie_actions(message: Message):
         await message.answer("You want to watch the movie!")
     elif message.text == "⏭":
         await message.answer("You want to skip the movie!")
-        
+
 @dp.message()
 async def find_film(message: Message):
     if message.text:
-        result = await search_movie(message.text)
-        await show_film_card(message.chat.id, result['results'][0])
+        result = await search_movie(message.text, is_series=is_series_status.get(message.chat.id, False))
+        await show_film_card(message.chat.id, result['results'][0], is_series=is_series_status.get(message.chat.id, False))
     else:
         await message.answer("Пожалуйста, укажите название фильма.")
 
