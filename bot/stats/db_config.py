@@ -7,17 +7,12 @@ DATABASE_NAME = "stats_cinema_bot.db"
 class Stats:
 	def __init__(self, db_name=DATABASE_NAME):
 		self.db_name = db_name
-		self.conn = None
-
-	def create_connection(self):
 		self.conn = sqlite3.connect(self.db_name)
-		return self.conn
+		self.cursor = self.conn.cursor()
 	
 	
 	def create_tables(self):
-		conn = self.create_connection()
-		cursor = conn.cursor()
-		cursor.execute("""
+		self.cursor.execute("""
 			CREATE TABLE IF NOT EXISTS users (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				username TEXT NOT NULL,
@@ -25,7 +20,7 @@ class Stats:
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			)
 		""")
-		cursor.execute("""
+		self.cursor.execute("""
 			CREATE TABLE IF NOT EXISTS service_stats (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				user_id INTEGER,
@@ -34,18 +29,34 @@ class Stats:
 				FOREIGN KEY(user_id) REFERENCES users(id)
 			)
 		""")
-		conn.commit()
-		cursor.close()
+		self.conn.commit()
+		self.cursor.close()
+
+	def save_request(self, user_id: int, query: str):
+		self.cursor.execute('''
+			INSERT INTO request_history (user_id, query)
+			VALUES (?, ?)
+		''', (user_id, query))
+		self.conn.commit()
+
+	def get_request_history(self, user_id: int, limit: int = 10):
+		self.cursor.execute('''
+			SELECT query, timestamp
+			FROM request_history
+			WHERE user_id = ?
+			ORDER BY timestamp DESC
+			LIMIT ?
+		''', (user_id, limit))
+		return self.cursor.fetchall()
 
 	def create_user_history(self, user_id: int, action: str):
 		# Insert action into service_stats table
-		conn = self.create_connection()
-		cursor = conn.cursor()
+		cursor = self.conn.cursor()
 		cursor.execute(
 			"INSERT INTO service_stats (user_id, action) VALUES (?, ?)",
 			(user_id, action)
 		)
-		conn.commit()
+		self.conn.commit()
 		cursor.close()
 
 		# Write action to log file in temp/{user_id}/
@@ -54,9 +65,10 @@ class Stats:
 		log_file = os.path.join(log_dir, ".log")
 		with open(log_file, "a", encoding="utf-8") as f:
 			f.write(f"{datetime.now().isoformat()} - {action}\n")
+
+
 	def save_liked_movie(self, user_id: int, movie_title: str):
-		conn = self.create_connection()
-		cursor = conn.cursor()
+		cursor = self.conn.cursor()
 		# Create liked_movies table if it doesn't exist
 		cursor.execute("""
 			CREATE TABLE IF NOT EXISTS liked_movies (
@@ -71,11 +83,12 @@ class Stats:
 			"INSERT INTO liked_movies (user_id, movie_title) VALUES (?, ?)",
 			(user_id, movie_title)
 		)
-		conn.commit()
+		self.conn.commit()
 		cursor.close()
+
+
 	def watch_liked_movies(self, user_id: int):
-		conn = self.create_connection()
-		cursor = conn.cursor()
+		cursor = self.conn.cursor()
 		cursor.execute(
 			"SELECT movie_title FROM liked_movies WHERE user_id = ?",
 			(user_id,)
@@ -83,6 +96,8 @@ class Stats:
 		movies = cursor.fetchall()
 		cursor.close()
 		return [movie[0] for movie in movies]
+	
+
 	def close_connection(self):
 		if self.conn:
 			self.conn.close()

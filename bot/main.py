@@ -53,16 +53,16 @@ async def show_film_card(chat_id: int, film_data: dict, is_series: bool = False)
     empty_stars = 5 - full_stars - half_star
     stars = '⭐' * full_stars + '💫' * half_star + '☆' * empty_stars
 
+    watch_link = search_first_result(film_data.get('title' if not is_series else 'name', ''), is_series=is_series_status.get(chat_id, False))
     answer_text = (
-        f"{film_data.get('title' if not is_series else 'name', 'N/A')}\n\n"
-        f"<b>{'Rating:'}</b> {film_data.get('vote_average', 'N/A')} {stars}\n"
-        f"<b>{'Date:'}</b> {film_data.get('release_date' if not is_series else 'first_air_date', 'N/A')}\n"
+        f"🎬 <b>{film_data.get('title' if not is_series else 'name', 'N/A')}</b>\n\n"
+        f"⭐ <b>Rating:</b> {film_data.get('vote_average', 'N/A')} {stars}\n"
+        f"📅 <b>Date:</b> {film_data.get('release_date' if not is_series else 'first_air_date', 'N/A')}\n"
         f"----------------------------------------------\n"
         f"\n"
-        f"<b>{'Description:'}</b> {film_data.get('overview', 'N/A')}"
-        f"\n"
+        f"📝 <b>Description:</b> {film_data.get('overview', 'N/A')}\n"
         f"----------------------------------------------\n"
-        f"<b>{'Watch now:'}</b> {search_first_result(film_data.get('title', ''), is_series=is_series_status.get(chat_id, False))}"
+        f"🔗 <b>Watch now:</b> <a href=\"{watch_link}\">Click here to watch</a>"
     )
 
     if poster_url:
@@ -94,8 +94,18 @@ async def handle_movie_actions(message: Message):
 @dp.message()
 async def find_film(message: Message):
     if message.text:
-        result = await search_movie(message.text, is_series=is_series_status.get(message.chat.id, False))
-        await show_film_card(message.chat.id, result['results'][0], is_series=is_series_status.get(message.chat.id, False))
+        user_id = message.chat.id
+        query = message.text
+
+        # Сохранение запроса в историю
+        stats.save_request(user_id, query)
+
+        # Поиск фильма
+        result = await search_movie(query, is_series=is_series_status.get(user_id, False))
+        if result and result.get('results'):
+            await show_film_card(user_id, result['results'][0], is_series=is_series_status.get(user_id, False))
+        else:
+            await message.answer("Фильм не найден. Попробуйте другой запрос.")
     else:
         await message.answer("Пожалуйста, укажите название фильма.")
 
