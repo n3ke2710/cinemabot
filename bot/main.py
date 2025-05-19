@@ -19,15 +19,15 @@ is_series_status: dict[int, bool] = {}
 
 @dp.message(Command('start'))
 async def start(message: Message):
-    await message.answer("Welcome! Use /series to search for a series.")
+    await message.answer("Welcome! Use /switch_mode to search for a series.")
 
-@dp.message(Command('series'))
-async def series_mode(message: Message):
-    await message.answer("Searching series mod ON! Use /film to search for a film.")
-    
-@dp.message(Command('films'))
-async def films_mode(message: Message):
-    await message.answer("Searching films mod ON! Use /series to search for a series.")
+@dp.message(Command('switch_mode'))
+async def switch_mode(message: Message):
+    chat_id = message.chat.id
+    is_series_status[chat_id] = not is_series_status.get(chat_id, False)
+    mode = "series" if is_series_status[chat_id] else "films"
+    antimode = "films" if is_series_status[chat_id] else "series"
+    await message.answer(f"Switched to {mode} mode. Use /switch_mode to search for a {antimode}.")
 
 async def show_film_card(chat_id: int, film_data: dict, is_series: bool = False) -> None:
     poster_url = f"https://image.tmdb.org/t/p/w500{film_data['poster_path']}" if film_data.get('poster_path') else None
