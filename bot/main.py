@@ -41,6 +41,15 @@ async def show_film_card(chat_id: int, film_data: dict) -> None:
     else:
         await bot.send_message(chat_id=chat_id, text=answer_text, parse_mode='HTML')
 
+@dp.message(lambda message: message.text in ["⏭", "❤️", "🎥"])
+async def handle_movie_actions(message: Message):
+    if message.text == "❤️":
+        await message.answer("You liked the movie!")
+    elif message.text == "🎥":
+        await message.answer("You want to watch the movie!")
+    elif message.text == "⏭":
+        await message.answer("You want to see the next movie!")
+
 @dp.message()
 async def find_film(message: Message):
     if message.text:
@@ -48,20 +57,6 @@ async def find_film(message: Message):
         await show_film_card(message.chat.id, result['results'][0])
     else:
         await message.answer("Пожалуйста, укажите название фильма.")
-
-
-@dp.callback_query(F.data.startswith("movie_"))
-async def handle_callback_query(callback_query: types.CallbackQuery):
-    if callback_query.data is not None:
-        action = callback_query.data.split("_", 1)[1]
-        if action == "like":
-            await callback_query.answer("You liked the movie!")
-        elif action == "watch":
-            await callback_query.answer("You want to watch the movie!")
-        elif action == "next":
-            await callback_query.answer("You want to see the next movie!")
-    else:
-        await callback_query.answer("Invalid callback data.")
 
 async def main():
     await dp.start_polling(bot, skip_updates=True)
