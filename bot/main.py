@@ -76,7 +76,12 @@ async def handle_movie_actions(message: Message):
     if message.text == "❤️":
         # Save liked movie to user_stats.db
         user_id = message.chat.id
-        movie_title = message.reply_to_message.caption.split('\n')[0] if message.reply_to_message and message.reply_to_message.caption else "Unknown"
+        movie_title = "Unknown"
+        if message.reply_to_message:
+            if message.reply_to_message.caption:
+                movie_title = message.reply_to_message.caption.split('\n')[0]
+            elif message.reply_to_message.text:
+                movie_title = message.reply_to_message.text.split('\n')[0]
 
         stats.save_liked_movie(user_id, movie_title)
 
