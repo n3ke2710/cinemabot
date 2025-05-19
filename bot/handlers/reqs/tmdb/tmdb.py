@@ -9,7 +9,10 @@ async def get_movie_details(movie_id):
 	async with aiohttp.ClientSession() as session:
 		async with session.get(url) as response:
 			if response.status == 200:
-				return await response.json()
+				data = await response.json()
+				if 'results' in data:
+						data['results'].sort(key=lambda x: x.get('vote_count', 0), reverse=True)
+				return data[:5]
 			else:
 				return None
 
