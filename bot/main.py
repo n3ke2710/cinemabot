@@ -10,6 +10,7 @@ import asyncio
 from aiogram.filters import Command
 
 from handlers.reqs.tmdb.tmdb import search_movie
+from handlers.markup.keyboard_markup_constructor import construct_keyboard_markup
 
 logging.basicConfig(level=logging.INFO)
 
@@ -30,12 +31,12 @@ async def show_film_card(chat_id: int, film_data: dict) -> None:
     answer_text = (
         f"{film_data.get('title', 'Нет названия')}\n\n"
         f"<b>{'Рейтинг:'}</b> {film_data.get('vote_average', 'N/A')} {stars}\n"
-        f"<b>{'Звезды:'}</b> {stars}\n"
+        f"\n"
         f"<b>{'Описание:'}</b> {film_data.get('overview', 'Описание отсутствует')}"
     )
 
     if poster_url:
-        await bot.send_photo(chat_id=chat_id, photo=poster_url, caption=answer_text, parse_mode='HTML')
+        await bot.send_photo(chat_id=chat_id, photo=poster_url, caption=answer_text, parse_mode='HTML', reply_markup=construct_keyboard_markup())
     else:
         await bot.send_message(chat_id=chat_id, text=answer_text, parse_mode='HTML')
 

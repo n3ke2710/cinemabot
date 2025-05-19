@@ -1,10 +1,16 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
+def construct_keyboard_markup() -> ReplyKeyboardMarkup:
+	button_next = KeyboardButton(text="⏭")
+	button_watch = KeyboardButton(text="❤️")
+	button_play = KeyboardButton(text="🎥")
 
-def construct_keyboard_markup() -> InlineKeyboardMarkup:
-	button_next = InlineKeyboardButton(text="⏭", callback_data="find_command_next_button")
-	button_watch = InlineKeyboardButton(text="❤️", callback_data="like_command_film")
-	button_play = InlineKeyboardButton(text="🎥", callback_data="find_command_watch_button")
-
-	keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_watch], [button_play], [button_next]])
+	keyboard = ReplyKeyboardMarkup(
+		keyboard=[
+			[button_watch],
+			[button_play],
+			[button_next]
+		],
+		resize_keyboard=True
+	)
 	return keyboard
