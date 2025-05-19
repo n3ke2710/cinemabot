@@ -27,17 +27,17 @@ async def show_film_card(chat_id: int, film_data: dict) -> None:
     empty_stars = 5 - full_stars - half_star
     stars = '⭐' * full_stars + '✬' * half_star + '☆' * empty_stars
 
-    answer_text = (
-        f"<b>{film_data.get('title', 'No title')}</b>\n\n"
-        f"<b>Рейтинг:</b> <code>{film_data.get('vote_average', 'N/A')}</code> {stars}\n"
-        f"<b>Звезды:</b> {stars}\n"
-        f"<b>Описание:</b> {film_data.get('overview', 'No description available')}"
-    )
+	answer_text = (
+		f"{film_data.get('title', 'Нет названия')}\n\n"
+		f"<b>{'Рейтинг:'}</b> {film_data.get('vote_average', 'N/A')} {stars}\n"
+		f"<b>{'Звезды:'}</b> {stars}\n"
+		f"<b>{'Описание:'}</b> {film_data.get('overview', 'Описание отсутствует')}"
+	)
 
     if poster_url:
-        await bot.send_photo(chat_id=chat_id, photo=poster_url, caption=answer_text)
+        await bot.send_photo(chat_id=chat_id, photo=poster_url, caption=answer_text, parse_mode='HTML')
     else:
-        await bot.send_message(chat_id=chat_id, text=answer_text)
+        await bot.send_message(chat_id=chat_id, text=answer_text, parse_mode='HTML')
 
 @dp.message()
 async def find_film(message: Message):
@@ -45,7 +45,7 @@ async def find_film(message: Message):
         result = await search_movie(message.text)
         await show_film_card(message.chat.id, result['results'][0])
     else:
-        await message.answer("Please provide the film name.")
+        await message.answer("Пожалуйста, укажите название фильма.")
 
 async def main():
     await dp.start_polling(bot, skip_updates=True)
