@@ -26,7 +26,7 @@ async def start(message: Message):
     await message.answer("Welcome! Use /switch_mode to search for a series.")
 
 
-dp.message(Command('like'))
+dp.message(Command('liked_movies'))
 async def get_liked(message: Message):
     user_id = message.chat.id
     liked_movies = stats.watch_liked_movies(user_id)
