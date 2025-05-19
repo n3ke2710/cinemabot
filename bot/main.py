@@ -123,6 +123,25 @@ async def show_popular_movies(callback_query: types.CallbackQuery):
     else:
         await callback_query.message.edit_text("Пока нет популярных запросов.")
 
+@dp.message(Command('help'))
+async def help_command(message: Message):
+    """
+    Отправляет список доступных команд и их описание.
+    """
+    help_text = (
+        "📖 <b>Доступные команды:</b>\n\n"
+        "/start - Начать работу с ботом\n"
+        "/help - Показать это сообщение\n"
+        "/top_movies - Показать топ-10 самых популярных фильмов\n"
+        "/search_by_description <описание> - Найти фильм по описанию\n"
+        "/liked_movies - Показать список понравившихся фильмов\n"
+        "/switch_mode - Переключить режим поиска (фильмы/сериалы)\n"
+        "/history - Показать историю ваших запросов\n"
+        "/popular_movies - Показать самые популярные запросы\n"
+        "/menu - Показать главное меню с кнопками\n"
+    )
+    await message.answer(help_text, parse_mode='HTML')
+
 async def show_film_card(chat_id: int, film_data: dict, is_series: bool = False) -> None:
     poster_url = f"https://image.tmdb.org/t/p/w500{film_data['poster_path']}" if film_data.get('poster_path') else None
 
