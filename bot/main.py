@@ -18,9 +18,9 @@ async def start(message: Message):
     await message.answer("Welcome! Use /find_film to search for a film.")
 
 async def show_film_card(chat_id: int, result) -> None:
-    poster_url =f"https://image.tmdb.org/t/p/w500{result['poster_path']}"
-    answer_text = f"{result['original title']}\n\n\
-    Описание: {result['overview']}\n\n\
+    poster_url = f"https://image.tmdb.org/t/p/w500{result['poster_path']}"
+    answer_text = f"{result['original title']}\n\n \
+    Описание: {result['overview']}\n\n \
     Рейтинг: {result['vote_average']}"
     await bot.send_photo(chat_id=chat_id, photo=poster_url, caption=answer_text)
 
@@ -28,7 +28,7 @@ async def show_film_card(chat_id: int, result) -> None:
 async def find_film(message: Message):
 	if message.text:
 		result = await search_movie(message.text)
-		await show_film_card(message.chat.id, result[0])
+		await show_film_card(message.chat.id, result['results'][0])
 	else:
 		await message.answer("Please provide the film name.")
 
