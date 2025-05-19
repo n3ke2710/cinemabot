@@ -1,7 +1,6 @@
 import os
 from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv  # type: ignore
-import imdb # type: ignore
 
 # Загружаем переменные окружения
 load_dotenv()
@@ -14,5 +13,3 @@ if not token:
 # Создаём экземпляры бота и диспетчера
 bot = Bot(token=token)
 dp = Dispatcher()
-
-ia = imdb.IMDb()

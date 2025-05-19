@@ -1,7 +1,4 @@
 # Ignore temporary files
 temp/
 
-# Ignore environment files
-.env
-
 *.cpython-312.pyc

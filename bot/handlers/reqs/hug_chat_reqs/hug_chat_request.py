@@ -1,4 +1,4 @@
-from ai.ai_config import chatbot
+from bot.handlers.reqs.hug_chat_reqs.hug_chat_config import chatbot
 
 
 async def query_hugging_chat(prompt: str) -> str:
