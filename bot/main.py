@@ -1,6 +1,6 @@
 import logging
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import Message
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.dispatcher.router import Router
 from aiogram.fsm.storage.memory import MemoryStorage
 from config import bot_token, bot, dp, router
@@ -10,9 +10,10 @@ import asyncio
 from aiogram.filters import Command
 from aiogram import F
 
-from handlers.reqs.tmdb.tmdb import search_movie
+from handlers.reqs.tmdb.tmdb import search_movie, get_top_movies
 from handlers.markup.keyboard_markup_constructor import construct_keyboard_markup
 from handlers.reqs.search_href.search import search_first_result
+from handlers.reqs.hug_chat_reqs.hug_chat_request import search_movie_by_description
 import sqlite3
 from stats.db_config import Stats
 
@@ -54,6 +55,73 @@ async def show_history(message: Message):
         await message.answer(f"Ваши последние запросы:\n\n{history_text}")
     else:
         await message.answer("У вас пока нет запросов.")
+
+@dp.message(Command('top_movies'))
+async def top_movies(message: Message):
+    """
+    Показывает топ-10 самых популярных фильмов.
+    """
+    movies = await get_top_movies()
+    if movies:
+        response = "🎥 <b>Топ-10 самых популярных фильмов:</b>\n\n"
+        for i, movie in enumerate(movies, start=1):
+            response += f"{i}. <b>{movie['title']}</b> ({movie.get('release_date', 'N/A')})\n"
+        await message.answer(response, parse_mode='HTML')
+    else:
+        await message.answer("Не удалось получить список популярных фильмов. Попробуйте позже.")
+
+@dp.message(Command('search_by_description'))
+async def search_by_description(message: Message):
+    """
+    Ищет фильм по описанию, предоставленному пользователем.
+    """
+    description = message.get_args()  # Получаем описание из аргументов команды
+    if not description:
+        await message.answer("Пожалуйста, укажите описание фильма после команды.")
+        return
+
+    result = await search_movie_by_description(description)
+    if result:
+        await message.answer(f"🔍 Найденный фильм:\n\n{result}")
+    else:
+        await message.answer("Не удалось найти фильм по описанию. Попробуйте позже.")
+
+@dp.message(Command('popular_movies'))
+async def popular_movies(message: Message):
+    """
+    Показывает самые популярные запросы.
+    """
+    top_queries = stats.get_top_queries()
+    if top_queries:
+        response = "🎥 <b>Самые популярные запросы:</b>\n\n"
+        for i, (query, count) in enumerate(top_queries, start=1):
+            response += f"{i}. <b>{query}</b> — {count} раз(а)\n"
+        await message.answer(response, parse_mode='HTML')
+    else:
+        await message.answer("Пока нет популярных запросов.")
+
+@dp.message(Command('menu'))
+async def menu(message: Message):
+    """
+    Главное меню с кнопками.
+    """
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(InlineKeyboardButton("Популярные фильмы", callback_data="popular_movies"))
+    await message.answer("Выберите действие:", reply_markup=keyboard)
+
+@dp.callback_query(lambda callback: callback.data == "popular_movies")
+async def show_popular_movies(callback_query: types.CallbackQuery):
+    """
+    Обработчик кнопки "Популярные фильмы".
+    """
+    top_queries = stats.get_top_queries()
+    if top_queries:
+        response = "🎥 <b>Самые популярные запросы:</b>\n\n"
+        for i, (query, count) in enumerate(top_queries, start=1):
+            response += f"{i}. <b>{query}</b> — {count} раз(а)\n"
+        await callback_query.message.edit_text(response, parse_mode='HTML')
+    else:
+        await callback_query.message.edit_text("Пока нет популярных запросов.")
 
 async def show_film_card(chat_id: int, film_data: dict, is_series: bool = False) -> None:
     poster_url = f"https://image.tmdb.org/t/p/w500{film_data['poster_path']}" if film_data.get('poster_path') else None
@@ -119,6 +187,11 @@ async def find_film(message: Message):
             await message.answer("Фильм не найден. Попробуйте другой запрос.")
     else:
         await message.answer("Пожалуйста, укажите название фильма.")
+
+@dp.errors_handler()
+async def handle_errors(update, exception):
+    logging.error(f"Ошибка: {exception}")
+    return True
 
 async def main():
     await dp.start_polling(bot, skip_updates=True)

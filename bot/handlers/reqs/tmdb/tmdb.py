@@ -27,3 +27,16 @@ async def search_movie(movie_title, is_series):
 				return await response.json()
 			else:
 				return None
+
+async def get_top_movies():
+    """
+    Получает список из 10 самых популярных фильмов с TMDB API.
+    """
+    url = f"{base_url}movie/popular?api_key={tmdb_api_key}&language=en-US&page=1"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                return data.get('results', [])[:10]  # Возвращаем только первые 10 фильмов
+            else:
+                return None

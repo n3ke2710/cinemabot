@@ -11,11 +11,18 @@ async def query_hugging_chat(prompt: str) -> str:
     Returns:
         str: The response from the Hugging Chat API.
     """
-    preprompt = "Представь, что ты кинокритик. Посоветуй наиболее подходящий фильм под описание. Формат ответа: номер. название(год). Описание:\n"
-
-    response = chatbot.chat(preprompt + prompt)
+    response = chatbot.chat(prompt)
 
     # Преобразуем объект ответа в строку
     if hasattr(response, "content"):  # Если объект имеет атрибут content
         return response.content
     return str(response)  # В противном случае преобразуем в строку
+
+
+async def search_movie_by_description(description: str) -> str:
+    """
+    Ищет фильм по описанию с помощью Hugging Chat API.
+    """
+    prompt = f"Найди фильм по следующему описанию: {description}"
+    response = await query_hugging_chat(prompt)
+    return response
