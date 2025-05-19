@@ -15,6 +15,7 @@ async def get_movie_details(movie_id):
 
 async def search_movie(movie_title):
 	url = f"{base_url}search/movie?api_key={tmdb_api_key}&query={movie_title}"
+	print(url)
 	async with aiohttp.ClientSession() as session:
 		async with session.get(url) as response:
 			if response.status == 200:
