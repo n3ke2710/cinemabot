@@ -14,7 +14,7 @@ from handlers.reqs.tmdb.tmdb import search_movie
 from handlers.markup.keyboard_markup_constructor import construct_keyboard_markup
 from handlers.reqs.search_href.search import search_first_result
 import sqlite3
-from stats import Stats
+from stats.db_config import Stats
 
 stats = Stats()
 
