@@ -7,7 +7,7 @@ from config import bot_token, bot, dp, router
 import aiohttp
 
 import asyncio
-from aiogram.filters import Command
+from aiogram.filters import Command, F
 
 from handlers.reqs.tmdb.tmdb import search_movie
 from handlers.markup.keyboard_markup_constructor import construct_keyboard_markup
@@ -47,6 +47,20 @@ async def find_film(message: Message):
         await show_film_card(message.chat.id, result['results'][0])
     else:
         await message.answer("Пожалуйста, укажите название фильма.")
+
+
+@dp.callback_query(F.data.startswith("movie_"))
+async def handle_callback_query(callback_query: types.CallbackQuery):
+    if callback_query.data is not None:
+        action = callback_query.data.split("_", 1)[1]
+        if action == "like":
+            await callback_query.answer("You liked the movie!")
+        elif action == "watch":
+            await callback_query.answer("You want to watch the movie!")
+        elif action == "next":
+            await callback_query.answer("You want to see the next movie!")
+    else:
+        await callback_query.answer("Invalid callback data.")
 
 async def main():
     await dp.start_polling(bot, skip_updates=True)
