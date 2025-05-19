@@ -18,12 +18,16 @@ logging.basicConfig(level=logging.INFO)
 async def start(message: Message):
     await message.answer("Welcome! Use /find_film to search for a film.")
 
-async def show_film_card(chat_id: int, result) -> None:
-    poster_url = f"https://image.tmdb.org/t/p/w500{result['poster_path']}"
-    answer_text = f"{result['original title']}\n\n \
-    Описание: {result['overview']}\n\n \
-    Рейтинг: {result['vote_average']}"
-    await bot.send_photo(chat_id=chat_id, photo=poster_url, caption=answer_text)
+async def show_film_card(chat_id: int, film_data: dict) -> None:
+    poster_url = f"https://image.tmdb.org/t/p/w500{film_data['poster_path']}" if film_data.get('poster_path') else None
+    answer_text = f"{film_data.get('title', 'No title')}\n\n" \
+                 f"Описание: {film_data.get('overview', 'No description available')}\n\n" \
+                 f"Рейтинг: {film_data.get('vote_average', 'N/A')}"
+    
+    if poster_url:
+        await bot.send_photo(chat_id=chat_id, photo=poster_url, caption=answer_text)
+    else:
+        await bot.send_message(chat_id=chat_id, text=answer_text)
 
 @dp.message()
 async def find_film(message: Message):
