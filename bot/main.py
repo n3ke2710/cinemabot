@@ -20,10 +20,14 @@ async def start(message: Message):
 
 async def show_film_card(chat_id: int, film_data: dict) -> None:
     poster_url = f"https://image.tmdb.org/t/p/w500{film_data['poster_path']}" if film_data.get('poster_path') else None
-    answer_text = f"{film_data.get('title', 'No title')}\n\n" \
-                 f"Описание: {film_data.get('overview', 'No description available')}\n\n" \
-                 f"Рейтинг: {film_data.get('vote_average', 'N/A')}"
-    
+
+    rating = film_data.get('vote_average', 0)
+    stars = '⭐' * int(round(rating / 2))
+
+    answer_text = f"**{film_data.get('title', 'No title')}**\n\n" \
+                 f"**Описание**: {film_data.get('overview', 'No description available')}\n\n" \
+                 f"**Рейтинг**: {film_data.get('vote_average', 'N/A')} {stars}"
+
     if poster_url:
         await bot.send_photo(chat_id=chat_id, photo=poster_url, caption=answer_text)
     else:
@@ -31,11 +35,11 @@ async def show_film_card(chat_id: int, film_data: dict) -> None:
 
 @dp.message()
 async def find_film(message: Message):
-	if message.text:
-		result = await search_movie(message.text)
-		await show_film_card(message.chat.id, result['results'][0])
-	else:
-		await message.answer("Please provide the film name.")
+    if message.text:
+        result = await search_movie(message.text)
+        await show_film_card(message.chat.id, result['results'][0])
+    else:
+        await message.answer("Please provide the film name.")
 
 async def main():
     await dp.start_polling(bot, skip_updates=True)
