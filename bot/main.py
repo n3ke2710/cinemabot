@@ -28,8 +28,8 @@ async def show_film_card(chat_id: int, film_data: dict) -> None:
     stars = '⭐' * full_stars + '✬' * half_star + '☆' * empty_stars
 
     answer_text = f"{film_data.get('title', 'No title')}\n\n" \
-                 f"Описание: {film_data.get('overview', 'No description available')}\n\n" \
-                 f"Рейтинг: {film_data.get('vote_average', 'N/A')} {stars}"
+    			  f"Рейтинг: {film_data.get('vote_average', 'N/A')} {stars} \n" \
+                  f"Описание: {film_data.get('overview', 'No description available')}"
 
     if poster_url:
         await bot.send_photo(chat_id=chat_id, photo=poster_url, caption=answer_text)
