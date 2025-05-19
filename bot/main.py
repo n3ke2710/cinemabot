@@ -17,9 +17,6 @@ logging.basicConfig(level=logging.INFO)
 async def start(message: Message):
     await message.answer("Welcome! Use /find_film to search for a film.")
 
-
-
-
 async def show_film_card(chat_id: int, result) -> None:
     poster_url =f"https://image.tmdb.org/t/p/w500{result['poster_path']}"
     answer_text = f"{result['original title']}\n\n\
