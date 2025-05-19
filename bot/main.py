@@ -4,6 +4,7 @@ from aiogram.types import Message
 from aiogram.dispatcher.router import Router
 from aiogram.fsm.storage.memory import MemoryStorage
 from config import bot_token, bot, dp, router
+import aiohttp
 
 import asyncio
 from aiogram.filters import Command
@@ -34,6 +35,9 @@ async def find_film(message: Message):
 
 async def main():
     await dp.start_polling(bot, skip_updates=True)
+
+async def on_shutdown():
+    await aiohttp.ClientSession().close()
 
 if __name__ == '__main__':
     asyncio.run(main())
