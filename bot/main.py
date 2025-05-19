@@ -36,7 +36,7 @@ async def show_film_card(chat_id: int, film_data: dict, is_series: bool = False)
     full_stars = int(rating // 2)
     half_star = 1 if (rating / 2 - full_stars) >= 0.5 else 0
     empty_stars = 5 - full_stars - half_star
-    stars = '⭐' * full_stars + '✬' * half_star + '☆' * empty_stars
+    stars = '⭐' * full_stars + '💫' * half_star + '☆' * empty_stars
 
     answer_text = (
         f"{film_data.get('title' if not is_series else 'name', 'N/A')}\n\n"
