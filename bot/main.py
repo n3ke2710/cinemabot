@@ -22,11 +22,14 @@ async def show_film_card(chat_id: int, film_data: dict) -> None:
     poster_url = f"https://image.tmdb.org/t/p/w500{film_data['poster_path']}" if film_data.get('poster_path') else None
 
     rating = film_data.get('vote_average', 0)
-    stars = '⭐' * int(round(rating / 2))
+    full_stars = int(rating // 2)
+    half_star = 1 if (rating / 2 - full_stars) >= 0.5 else 0
+    empty_stars = 5 - full_stars - half_star
+    stars = '⭐' * full_stars + '✬' * half_star + '☆' * empty_stars
 
-    answer_text = f"**{film_data.get('title', 'No title')}**\n\n" \
-                 f"**Описание**: {film_data.get('overview', 'No description available')}\n\n" \
-                 f"**Рейтинг**: {film_data.get('vote_average', 'N/A')} {stars}"
+    answer_text = f"{film_data.get('title', 'No title')}\n\n" \
+                 f"Описание: {film_data.get('overview', 'No description available')}\n\n" \
+                 f"Рейтинг: {film_data.get('vote_average', 'N/A')} {stars}"
 
     if poster_url:
         await bot.send_photo(chat_id=chat_id, photo=poster_url, caption=answer_text)
