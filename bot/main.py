@@ -22,7 +22,8 @@ async def start(message: Message):
 async def find_film(message: Message):
 	if message.text:
 		result = await search_movie(message.text)
-		await message.answer(result)
+		print(result)
+		await message.answer("DONE")
 	else:
 		await message.answer("Please provide the film name.")
 
