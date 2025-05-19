@@ -12,6 +12,7 @@ from aiogram import F
 
 from handlers.reqs.tmdb.tmdb import search_movie
 from handlers.markup.keyboard_markup_constructor import construct_keyboard_markup
+from handlers.reqs.search_href.search import search_first_result
 
 logging.basicConfig(level=logging.INFO)
 
@@ -31,9 +32,13 @@ async def show_film_card(chat_id: int, film_data: dict) -> None:
 
     answer_text = (
         f"{film_data.get('title', 'Нет названия')}\n\n"
-        f"<b>{'Рейтинг:'}</b> {film_data.get('vote_average', 'N/A')} {stars}\n"
+        f"<b>{'Rating:'}</b> {film_data.get('vote_average', 'N/A')} {stars}\n"
+        f"----------------------------------------------\n"
         f"\n"
-        f"<b>{'Описание:'}</b> {film_data.get('overview', 'Описание отсутствует')}"
+        f"<b>{'Description:'}</b> {film_data.get('overview', 'Описание отсутствует')}"
+        f"\n"
+        f"----------------------------------------------\n"
+        f"<b>{'Watch now:'}</b> {search_first_result(film_data.get('title', ''))}"
     )
 
     if poster_url:
@@ -48,8 +53,8 @@ async def handle_movie_actions(message: Message):
     elif message.text == "🎥":
         await message.answer("You want to watch the movie!")
     elif message.text == "⏭":
-        await message.answer("You want to see the next movie!")
-
+        await message.answer("You want to skip the movie!")
+        
 @dp.message()
 async def find_film(message: Message):
     if message.text:
