@@ -28,6 +28,7 @@ async def start(message: Message):
 
 dp.message(Command('liked_movies'))
 async def get_liked(message: Message):
+    await message.answer("Fetching your liked movies...")
     user_id = message.chat.id
     liked_movies = stats.watch_liked_movies(user_id)
     if liked_movies:
