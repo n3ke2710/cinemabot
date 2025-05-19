@@ -13,6 +13,10 @@ from aiogram import F
 from handlers.reqs.tmdb.tmdb import search_movie
 from handlers.markup.keyboard_markup_constructor import construct_keyboard_markup
 from handlers.reqs.search_href.search import search_first_result
+import sqlite3
+from stats import Stats
+
+stats = Stats()
 
 logging.basicConfig(level=logging.INFO)
 is_series_status: dict[int, bool] = {}
@@ -55,9 +59,24 @@ async def show_film_card(chat_id: int, film_data: dict, is_series: bool = False)
     else:
         await bot.send_message(chat_id=chat_id, text=answer_text, parse_mode='HTML')
 
+dp.message(Command('like'))
+async def get_liked(message: Message):
+    user_id = message.chat.id
+    liked_movies = stats.watch_liked_movies(user_id)
+    if liked_movies:
+        await message.answer("Your liked movies:\n" + "\n".join(liked_movies))
+    else:
+        await message.answer("You have no liked movies.")
+
 @dp.message(lambda message: message.text in ["⏭", "❤️", "🎥"])
 async def handle_movie_actions(message: Message):
     if message.text == "❤️":
+        # Save liked movie to user_stats.db
+        user_id = message.chat.id
+        movie_title = message.reply_to_message.caption.split('\n')[0] if message.reply_to_message and message.reply_to_message.caption else "Unknown"
+
+        stats.save_liked_movie(user_id, movie_title)
+
         await message.answer("You liked the movie!")
     elif message.text == "🎥":
         await message.answer("You want to watch the movie!")

@@ -54,7 +54,35 @@ class Stats:
 		log_file = os.path.join(log_dir, ".log")
 		with open(log_file, "a", encoding="utf-8") as f:
 			f.write(f"{datetime.now().isoformat()} - {action}\n")
-
+	def save_liked_movie(self, user_id: int, movie_title: str):
+		conn = self.create_connection()
+		cursor = conn.cursor()
+		# Create liked_movies table if it doesn't exist
+		cursor.execute("""
+			CREATE TABLE IF NOT EXISTS liked_movies (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user_id INTEGER,
+				movie_title TEXT NOT NULL,
+				liked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				FOREIGN KEY(user_id) REFERENCES users(id)
+			)
+		""")
+		cursor.execute(
+			"INSERT INTO liked_movies (user_id, movie_title) VALUES (?, ?)",
+			(user_id, movie_title)
+		)
+		conn.commit()
+		cursor.close()
+	def watch_liked_movies(self, user_id: int):
+		conn = self.create_connection()
+		cursor = conn.cursor()
+		cursor.execute(
+			"SELECT movie_title FROM liked_movies WHERE user_id = ?",
+			(user_id,)
+		)
+		movies = cursor.fetchall()
+		cursor.close()
+		return [movie[0] for movie in movies]
 	def close_connection(self):
 		if self.conn:
 			self.conn.close()
