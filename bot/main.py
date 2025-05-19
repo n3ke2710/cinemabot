@@ -25,6 +25,16 @@ is_series_status: dict[int, bool] = {}
 async def start(message: Message):
     await message.answer("Welcome! Use /switch_mode to search for a series.")
 
+
+dp.message(Command('like'))
+async def get_liked(message: Message):
+    user_id = message.chat.id
+    liked_movies = stats.watch_liked_movies(user_id)
+    if liked_movies:
+        await message.answer("Your liked movies:\n" + "\n".join(liked_movies))
+    else:
+        await message.answer("You have no liked movies.")
+
 @dp.message(Command('switch_mode'))
 async def switch_mode(message: Message):
     chat_id = message.chat.id
@@ -59,14 +69,6 @@ async def show_film_card(chat_id: int, film_data: dict, is_series: bool = False)
     else:
         await bot.send_message(chat_id=chat_id, text=answer_text, parse_mode='HTML')
 
-dp.message(Command('like'))
-async def get_liked(message: Message):
-    user_id = message.chat.id
-    liked_movies = stats.watch_liked_movies(user_id)
-    if liked_movies:
-        await message.answer("Your liked movies:\n" + "\n".join(liked_movies))
-    else:
-        await message.answer("You have no liked movies.")
 
 @dp.message(lambda message: message.text in ["⏭", "❤️", "🎥"])
 async def handle_movie_actions(message: Message):
