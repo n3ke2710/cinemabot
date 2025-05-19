@@ -44,6 +44,17 @@ async def switch_mode(message: Message):
     antimode = "films" if is_series_status[chat_id] else "series"
     await message.answer(f"Switched to {mode} mode. Use /switch_mode to search for a {antimode}.")
 
+@dp.message(Command('history'))
+async def show_history(message: Message):
+    user_id = message.chat.id
+    history = stats.get_request_history(user_id)
+
+    if history:
+        history_text = "\n".join([f"{timestamp}: {query}" for query, timestamp in history])
+        await message.answer(f"Ваши последние запросы:\n\n{history_text}")
+    else:
+        await message.answer("У вас пока нет запросов.")
+
 async def show_film_card(chat_id: int, film_data: dict, is_series: bool = False) -> None:
     poster_url = f"https://image.tmdb.org/t/p/w500{film_data['poster_path']}" if film_data.get('poster_path') else None
 
