@@ -1,5 +1,4 @@
 from handlers.reqs.tmdb import tmdb_api_key, base_url # type: ignore
-from bot.handlers.reqs.hug_chat_reqs.hug_chat_config import 
 import requests # type: ignore
 import aiohttp
 

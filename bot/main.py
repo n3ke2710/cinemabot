@@ -1,6 +1,7 @@
 import logging
 import asyncio
-from typing import Dict
+import signal
+from typing import Dict, Any
 
 from aiogram import types
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
@@ -8,26 +9,46 @@ from aiogram.filters import Command
 
 from config import bot, dp
 from handlers.reqs.tmdb.tmdb import search_movie, get_top_movies
-from handlers.markup.keyboard_markup_constructor import construct_keyboard_markup
+from handlers.markup.keyboard_markup_constructor import (
+	construct_keyboard_markup
+)
 from handlers.reqs.search_href.search import search_first_result
 from handlers.reqs.hug_chat_reqs.hug_chat_request import (
 	search_movie_by_description,
 )
 from stats.db_config import Stats
 
-stats = Stats()
+# Настройка логирования
+logging.basicConfig(
+	level=logging.INFO,
+	format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-logging.basicConfig(level=logging.INFO)
+stats = Stats()
 is_series_status: Dict[int, bool] = {}
+
+# Флаг для корректного завершения работы
+is_running = True
+
+def signal_handler(signum, frame):
+	"""Обработчик сигналов для корректного завершения работы"""
+	global is_running
+	logger.info("Получен сигнал завершения работы")
+	is_running = False
+
+# Регистрируем обработчики сигналов
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
 
 @dp.message(Command("start"))
-async def start(message: Message):
+async def start(message: Message) -> None:
 	await message.answer("Welcome! Use /switch_mode to search for a series.")
 
 
 @dp.message(Command("liked_movies"))
-async def get_liked(message: Message):
+async def get_liked(message: Message) -> None:
 	await message.answer("Fetching your liked movies...")
 	user_id = message.chat.id
 	liked_movies = stats.watch_liked_movies(user_id)
@@ -38,7 +59,7 @@ async def get_liked(message: Message):
 
 
 @dp.message(Command("switch_mode"))
-async def switch_mode(message: Message):
+async def switch_mode(message: Message) -> None:
 	chat_id = message.chat.id
 	is_series_status[chat_id] = not is_series_status.get(chat_id, False)
 	mode = "series" if is_series_status[chat_id] else "films"
@@ -49,7 +70,7 @@ async def switch_mode(message: Message):
 
 
 @dp.message(Command("history"))
-async def show_history(message: Message):
+async def show_history(message: Message) -> None:
 	user_id = message.chat.id
 	history = stats.get_request_history(user_id)
 	if history:
@@ -62,7 +83,7 @@ async def show_history(message: Message):
 
 
 @dp.message(Command("top_movies"))
-async def top_movies(message: Message):
+async def top_movies(message: Message) -> None:
 	movies = await get_top_movies()
 	if movies:
 		response = "🎥 <b>Топ-10 самых популярных фильмов:</b>\n\n"
@@ -79,21 +100,25 @@ async def top_movies(message: Message):
 
 
 @dp.message(Command("search_by_description"))
-async def search_by_description(message: Message):
+async def search_by_description(message: Message) -> None:
 	description = message.get_args()
 	if not description:
-		await message.answer("Пожалуйста, укажите описание фильма после команды.")
+		await message.answer(
+			"Пожалуйста, укажите описание фильма после команды."
+		)
 		return
 
 	result = await search_movie_by_description(description)
 	if result:
 		await message.answer(f"🔍 Найденный фильм:\n\n{result}")
 	else:
-		await message.answer("Не удалось найти фильм по описанию. Попробуйте позже.")
+		await message.answer(
+			"Не удалось найти фильм по описанию. Попробуйте позже."
+		)
 
 
 @dp.message(Command("popular_movies"))
-async def popular_movies(message: Message):
+async def popular_movies(message: Message) -> None:
 	top_queries = stats.get_top_queries()
 	if top_queries:
 		response = "🎥 <b>Самые популярные запросы:</b>\n\n"
@@ -105,16 +130,21 @@ async def popular_movies(message: Message):
 
 
 @dp.message(Command("menu"))
-async def menu(message: Message):
+async def menu(message: Message) -> None:
 	keyboard = InlineKeyboardMarkup()
 	keyboard.add(
-		InlineKeyboardButton("Популярные фильмы", callback_data="popular_movies")
+		InlineKeyboardButton(
+			"Популярные фильмы",
+			callback_data="popular_movies"
+		)
 	)
 	await message.answer("Выберите действие:", reply_markup=keyboard)
 
 
 @dp.callback_query(lambda callback: callback.data == "popular_movies")
-async def show_popular_movies(callback_query: types.CallbackQuery):
+async def show_popular_movies(
+	callback_query: types.CallbackQuery
+) -> None:
 	top_queries = stats.get_top_queries()
 	if top_queries:
 		response = "🎥 <b>Самые популярные запросы:</b>\n\n"
@@ -126,7 +156,7 @@ async def show_popular_movies(callback_query: types.CallbackQuery):
 
 
 @dp.message(Command("help"))
-async def help_command(message: Message):
+async def help_command(message: Message) -> None:
 	help_text = (
 		"📖 <b>Доступные команды:</b>\n\n"
 		"/start - Начать работу с ботом\n"
@@ -143,7 +173,9 @@ async def help_command(message: Message):
 
 
 async def show_film_card(
-	chat_id: int, film_data: dict, is_series: bool = False
+	chat_id: int,
+	film_data: Dict[str, Any],
+	is_series: bool = False
 ) -> None:
 	poster_url = (
 		f"https://image.tmdb.org/t/p/w500{film_data['poster_path']}"
@@ -161,10 +193,17 @@ async def show_film_card(
 		film_data.get("title" if not is_series else "name", ""),
 		is_series=is_series_status.get(chat_id, False),
 	)
+	
+	title = film_data.get('title' if not is_series else 'name', 'N/A')
+	release_date = film_data.get(
+		'release_date' if not is_series else 'first_air_date',
+		'N/A'
+	)
+	
 	answer_text = (
-		f"🎬 <b>{film_data.get('title' if not is_series else 'name', 'N/A')}</b>\n\n"
+		f"🎬 <b>{title}</b>\n\n"
 		f"⭐ <b>Rating:</b> {film_data.get('vote_average', 'N/A')} {stars}\n"
-		f"📅 <b>Date:</b> {film_data.get('release_date' if not is_series else 'first_air_date', 'N/A')}\n"
+		f"📅 <b>Date:</b> {release_date}\n"
 		f"----------------------------------------------\n"
 		f"\n"
 		f"📝 <b>Description:</b> {film_data.get('overview', 'N/A')}\n"
@@ -181,11 +220,15 @@ async def show_film_card(
 			reply_markup=construct_keyboard_markup(),
 		)
 	else:
-		await bot.send_message(chat_id=chat_id, text=answer_text, parse_mode="HTML")
+		await bot.send_message(
+			chat_id=chat_id,
+			text=answer_text,
+			parse_mode="HTML"
+		)
 
 
 @dp.message(lambda message: message.text in ["⏭", "❤️", "🎥"])
-async def handle_movie_actions(message: Message):
+async def handle_movie_actions(message: Message) -> None:
 	if message.text == "❤️":
 		user_id = message.chat.id
 		movie_title = "Unknown"
@@ -203,13 +246,14 @@ async def handle_movie_actions(message: Message):
 
 
 @dp.message()
-async def find_film(message: Message):
+async def find_film(message: Message) -> None:
 	if message.text:
 		user_id = message.chat.id
 		query = message.text
 		stats.save_request(user_id, query)
 		result = await search_movie(
-			query, is_series=is_series_status.get(user_id, False)
+			query,
+			is_series=is_series_status.get(user_id, False)
 		)
 		if result and result.get("results"):
 			await show_film_card(
@@ -218,20 +262,45 @@ async def find_film(message: Message):
 				is_series=is_series_status.get(user_id, False),
 			)
 		else:
-			await message.answer("Фильм не найден. Попробуйте другой запрос.")
+			await message.answer(
+				"Фильм не найден. Попробуйте другой запрос."
+			)
 	else:
 		await message.answer("Пожалуйста, укажите название фильма.")
 
 
 @dp.errors_handler()
-async def handle_errors(update, exception):
+async def handle_errors(
+	update: Any,
+	exception: Exception
+) -> bool:
 	logging.error(f"Ошибка: {exception}")
 	return True
 
 
-async def main():
-	await dp.start_polling(bot, skip_updates=True)
+async def main() -> None:
+	try:
+		logger.info("Запуск бота...")
+		await dp.start_polling(bot, skip_updates=True)
+		
+		# Ожидаем сигнала завершения
+		while is_running:
+			await asyncio.sleep(1)
+			
+	except Exception as e:
+		logger.error(f"Ошибка при работе бота: {e}")
+	finally:
+		# Корректное завершение работы
+		logger.info("Завершение работы бота...")
+		await bot.session.close()
+		stats.close_connection()
+		logger.info("Бот остановлен")
 
 
 if __name__ == "__main__":
-	asyncio.run(main())
+	try:
+		asyncio.run(main())
+	except KeyboardInterrupt:
+		logger.info("Бот остановлен пользователем")
+	except Exception as e:
+		logger.error(f"Критическая ошибка: {e}")

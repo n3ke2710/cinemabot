@@ -1,20 +1,32 @@
 import os
+import logging
 from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv  # type: ignore
 from aiogram.dispatcher.router import Router
 from aiogram.fsm.storage.memory import MemoryStorage
 
-# Загружаем переменные окружения
-load_dotenv()
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-# Получаем токен из переменных окружения
-bot_token = os.getenv('BOT_TOKEN')
-if not bot_token:
-    raise ValueError("BOT_TOKEN не найден в переменных окружения")
+try:
+    # Загружаем переменные окружения
+    load_dotenv()
 
-# Создаём экземпляры бота и диспетчера
-bot = Bot(token=bot_token)
-dp = Dispatcher()
+    # Получаем токен из переменных окружения
+    bot_token = os.getenv('BOT_TOKEN')
+    if not bot_token:
+        raise ValueError("BOT_TOKEN не найден в переменных окружения")
 
-storage = MemoryStorage()
-router = Router()
+    # Создаём экземпляры бота и диспетчера
+    bot = Bot(token=bot_token, parse_mode="HTML")
+    dp = Dispatcher()
+    storage = MemoryStorage()
+    router = Router()
+
+except Exception as e:
+    logger.error(f"Ошибка при инициализации бота: {e}")
+    raise
