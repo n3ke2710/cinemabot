@@ -1,6 +1,8 @@
 import os
 import logging
 from aiogram import Bot, Dispatcher
+from aiogram.enums import ParseMode
+from aiogram.client.default import DefaultBotProperties
 from dotenv import load_dotenv  # type: ignore
 from aiogram.dispatcher.router import Router
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -22,7 +24,10 @@ try:
         raise ValueError("BOT_TOKEN не найден в переменных окружения")
 
     # Создаём экземпляры бота и диспетчера
-    bot = Bot(token=bot_token, parse_mode="HTML")
+    bot = Bot(
+        token=bot_token,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+    )
     dp = Dispatcher()
     storage = MemoryStorage()
     router = Router()
