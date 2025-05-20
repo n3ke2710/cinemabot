@@ -1,4 +1,4 @@
-from hug_chat_config import chatbot
+from .hug_chat_config import chatbot
 
 
 async def query_hugging_chat(prompt: str) -> str:
