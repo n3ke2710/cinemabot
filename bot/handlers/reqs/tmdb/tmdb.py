@@ -1,4 +1,4 @@
-from handlers.reqs.tmdb import tmdb_api_key, base_url # type: ignore
+from .config import tmdb_api_key, base_url
 import requests # type: ignore
 import aiohttp
 
