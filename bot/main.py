@@ -47,6 +47,23 @@ async def start(message: Message) -> None:
 	await message.answer("Welcome! Use /switch_mode to search for a series.")
 
 
+@dp.message(Command("help"))
+async def help_command(message: Message) -> None:
+	help_text = (
+		"📖 <b>Доступные команды:</b>\n\n"
+		"/start - Начать работу с ботом\n"
+		"/help - Показать это сообщение\n"
+		"/top_movies - Показать топ-10 самых популярных фильмов\n"
+		"/search_by_description <описание> - Найти фильм по описанию\n"
+		"/liked_movies - Показать список понравившихся фильмов\n"
+		"/switch_mode - Переключить режим поиска (фильмы/сериалы)\n"
+		"/history - Показать историю ваших запросов\n"
+		"/popular_movies - Показать самые популярные запросы\n"
+		"/menu - Показать главное меню с кнопками\n"
+	)
+	await message.answer(help_text, parse_mode="HTML")
+
+
 @dp.message(Command("liked_movies"))
 async def get_liked(message: Message) -> None:
 	await message.answer("Fetching your liked movies...")
@@ -159,22 +176,6 @@ async def show_popular_movies(callback_query: types.CallbackQuery) -> None:
 	else:
 		await callback_query.message.edit_text("Пока нет популярных запросов.")
 
-
-@dp.message(Command("help"))
-async def help_command(message: Message) -> None:
-	help_text = (
-		"📖 <b>Доступные команды:</b>\n\n"
-		"/start - Начать работу с ботом\n"
-		"/help - Показать это сообщение\n"
-		"/top_movies - Показать топ-10 самых популярных фильмов\n"
-		"/search_by_description <описание> - Найти фильм по описанию\n"
-		"/liked_movies - Показать список понравившихся фильмов\n"
-		"/switch_mode - Переключить режим поиска (фильмы/сериалы)\n"
-		"/history - Показать историю ваших запросов\n"
-		"/popular_movies - Показать самые популярные запросы\n"
-		"/menu - Показать главное меню с кнопками\n"
-	)
-	await message.answer(help_text, parse_mode="HTML")
 
 
 async def show_film_card(
