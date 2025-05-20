@@ -4,7 +4,7 @@ import signal
 from typing import Dict, Any
 
 from aiogram import types
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, Update
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, Update, ErrorEvent
 from aiogram.filters import Command
 
 from config import bot, dp
@@ -270,8 +270,8 @@ async def find_film(message: Message) -> None:
 
 
 @dp.errors()
-async def handle_errors(update: Update, exception: Exception) -> bool:
-	logging.error(f"Ошибка: {exception}")
+async def handle_errors(event: ErrorEvent) -> bool:
+	logging.error(f"Ошибка: {event.exception}")
 	return True
 
 
