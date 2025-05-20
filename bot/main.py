@@ -144,7 +144,9 @@ async def popular_movies(message: Message) -> None:
 	if top_queries:
 		response = "🎥 <b>Самые популярные запросы:</b>\n\n"
 		for i, (query, count) in enumerate(top_queries, start=1):
-			response += f"{i}. <b>{query}</b> — {count} раз(а)\n"
+			# Экранируем HTML-символы в запросе
+			safe_query = query.replace("<", "&lt;").replace(">", "&gt;")
+			response += f"{i}. <b>{safe_query}</b> — {count} раз(а)\n"
 		await message.answer(response, parse_mode="HTML")
 	else:
 		await message.answer("Пока нет популярных запросов.")
