@@ -131,20 +131,21 @@ async def popular_movies(message: Message) -> None:
 
 @dp.message(Command("menu"))
 async def menu(message: Message) -> None:
-	keyboard = InlineKeyboardMarkup()
-	keyboard.add(
-		InlineKeyboardButton(
-			"Популярные фильмы",
-			callback_data="popular_movies"
-		)
+	keyboard = InlineKeyboardMarkup(
+		inline_keyboard=[
+			[InlineKeyboardButton(
+				text="Популярные фильмы",
+				callback_data="popular_movies"
+			)]
+		]
 	)
 	await message.answer("Выберите действие:", reply_markup=keyboard)
 
 
 @dp.callback_query(lambda callback: callback.data == "popular_movies")
-async def show_popular_movies(
-	callback_query: types.CallbackQuery
-) -> None:
+async def show_popular_movies(callback_query: types.CallbackQuery) -> None:
+	if not callback_query.message:
+		return
 	top_queries = stats.get_top_queries()
 	if top_queries:
 		response = "🎥 <b>Самые популярные запросы:</b>\n\n"
