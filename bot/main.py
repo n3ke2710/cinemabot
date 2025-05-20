@@ -101,7 +101,11 @@ async def top_movies(message: Message) -> None:
 
 @dp.message(Command("search_by_description"))
 async def search_by_description(message: Message) -> None:
-	description = message.get_args()
+	if not message.text:
+		await message.answer("Пожалуйста, укажите описание фильма после команды.")
+		return
+	args = message.text.split(maxsplit=1)[1:]
+	description = args[0] if args else None
 	if not description:
 		await message.answer(
 			"Пожалуйста, укажите описание фильма после команды."
