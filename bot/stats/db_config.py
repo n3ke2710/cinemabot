@@ -60,9 +60,7 @@ class Stats:
 					CREATE TABLE IF NOT EXISTS liked_movies (
 						id INTEGER PRIMARY KEY AUTOINCREMENT,
 						user_id INTEGER,
-						movie_title TEXT NOT NULL,
-						liked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-						FOREIGN KEY(user_id) REFERENCES users(id)
+						movie_title TEXT NOT NULL
 					)
 				""")
 		except sqlite3.Error as e:
