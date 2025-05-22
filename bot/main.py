@@ -239,7 +239,7 @@ async def show_film_card(
 async def handle_movie_actions(message: Message) -> None:
 	if message.text == "❤️":
 		user_id = message.chat.id
-		_, movie_title = stats.get_request_history(user_id, limit=1)[0]
+		movie_title, _ = stats.get_request_history(user_id, limit=1)[0]
 		if movie_title != "Unknown":
 			stats.save_liked_movie(user_id, movie_title)
 			await message.answer(f"Фильм '{movie_title}' добавлен в избранное!")
