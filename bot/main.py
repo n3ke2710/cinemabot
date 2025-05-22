@@ -219,6 +219,7 @@ async def show_film_card(
 		f'🔗 <b>Watch now:</b> <a href="{watch_link}">Click here to watch</a>'
 	)
 
+	stats.save_request(chat_id, title)
 	if poster_url:
 		await bot.send_photo(
 			chat_id=chat_id,
@@ -256,7 +257,6 @@ async def find_film(message: Message) -> None:
 	if message.text:
 		user_id = message.chat.id
 		query = message.text
-		stats.save_request(user_id, query)
 		result = await search_movie(
 			query,
 			is_series=is_series_status.get(user_id, False)
@@ -268,6 +268,7 @@ async def find_film(message: Message) -> None:
 				is_series=is_series_status.get(user_id, False),
 			)
 		else:
+			stats.save_request(user_id, query)
 			await message.answer(
 				"Фильм не найден. Попробуйте другой запрос."
 			)
