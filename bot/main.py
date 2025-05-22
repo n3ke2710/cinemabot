@@ -242,15 +242,15 @@ async def handle_movie_actions(message: Message) -> None:
 		movie_title = "Unknown"
 		if message.reply_to_message:
 			if message.reply_to_message.caption:
-				movie_title = message.reply_to_message.caption.split("\n")[0]
+				movie_title = message.reply_to_message.caption.split("\n")[0].replace("🎬 <b>", "").replace("</b>", "")
 			elif message.reply_to_message.text:
-				movie_title = message.reply_to_message.text.split("\n")[0]
+				movie_title = message.reply_to_message.text.split("\n")[0].replace("🎬 <b>", "").replace("</b>", "")
 		stats.save_liked_movie(user_id, movie_title)
-		await message.answer("You liked the movie!")
+		await message.answer("Фильм добавлен в избранное!")
 	elif message.text == "🎥":
-		await message.answer("You want to watch the movie!")
+		await message.answer("В разработке")
 	elif message.text == "⏭":
-		await message.answer("You want to skip the movie!")
+		await message.answer("В разработке")
 
 
 @dp.message()
